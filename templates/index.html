@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <script src="https://cdn.socket.io/4.1.2/socket.io.min.js"></script>
+</head>
+<body>
+    <div id="username-screen">
+        <h1>Ingresa tu nombre de usuario</h1>
+        <input type="text" id="username" name="username" placeholder="Nombre">
+        <button id="join-btn">Unirse al chat</button>
+    </div>
+
+    <div id="chat-screen" style="display: none;">
+        <h1>Chat</h1>
+        <div id="username"></div>
+        <ul id="messages"></ul>
+        <form id="message-form">
+            <input type="text" id="message" name="message" placeholder="Escribe un mensaje...">
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+
+    <script>
+        var socket = io();
+        
+        // Manejar el evento de unirse al chat
+        document.getElementById('join-btn').addEventListener('click', function(event) {
+            var usernameInput = document.getElementById('username');
+            var username = usernameInput.value.trim();
+            if (username !== '') {
+                socket.emit('join', username);
+                usernameInput.disabled = true;
+                this.disabled = true;
+                document.getElementById('username-screen').style.display = 'none';
+                document.getElementById('chat-screen').style.display = 'block';
+            }
+        });
+
+        // Manejar el envío de mensajes
+        document.getElementById('message-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var messageInput = document.getElementById('message');
+            var message = messageInput.value.trim();
+            if (message !== '') {
+                sendMessage(message);
+                messageInput.value = '';
+            }
+        });
+
+        // Enviar mensaje al servidor
+        function sendMessage(message) {
+            socket.emit('message', {message: message});
+        }
+
+        // Mostrar mensajes recibidos
+        socket.on('message', function(message) {
+            var messageList = document.getElementById('messages');
+            var messageElement = document.createElement('li');
+            messageElement.textContent = message;
+            messageList.appendChild(messageElement);
+        });
+
+        // Mostrar el nombre de usuario asignado
+        socket.on('username', function(username) {
+            document.getElementById('username').textContent = 'Usuario: ' + username;
+        });
+    </script>
+</body>
+</html>
